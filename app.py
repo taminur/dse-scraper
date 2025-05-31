@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_file, request, abort, Response
+from flask import Flask, jsonify, send_file, request, abort, Response, render_template
 import os
 from scraper import collect_from_dsebd
 
@@ -46,8 +46,7 @@ def download():
 
 @app.route("/")
 def home():
-    return ("<h3>DSE Scraper API</h3>"
-            )
+    return render_template("index.html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Render sets PORT env variable
