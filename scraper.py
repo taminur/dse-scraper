@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 from lxml import html
-
+from io import StringIO
 def fetch_latest_share_price_from_dsebd() -> pd.DataFrame:
     '''
     This function extracts data from "https://www.dsebd.org/latest_share_price_scroll_l.php" and returns a pandas dataframe if successfull.
@@ -20,7 +20,7 @@ def fetch_latest_share_price_from_dsebd() -> pd.DataFrame:
         
         try:
             # Extract tables using pandas (it uses lxml under the hood)
-            tables = pd.read_html(response.content)
+            tables = pd.read_html(StringIO(response.content.decode("utf-8")))
             
             # select the target table
             df = tables[-2]
