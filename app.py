@@ -1,11 +1,19 @@
 from flask import Flask, jsonify, send_file, request, abort, Response, render_template
 import os
 from scraper import collect_from_dsebd
+from datetime import datetime
+
+def get_file_name() -> str:
+    # Get current datetime
+    now = datetime.now()
+    
+    # Format as string (yyyymmddhhmm)
+    filename = now.strftime("%Y%m%d%H%M") + ".csv"
 
 app = Flask(__name__)
 
 API_KEY = os.environ.get("API_KEY")
-CSV_DATA = 'latest_stock_data.csv'
+CSV_DATA = get_file_name()
 
 def require_api_key():
     key = request.args.get("key") or request.headers.get("x-api-key")
