@@ -1,7 +1,8 @@
-from flask import Flask, jsonify, send_file, request, abort, Response, render_template
+from flask import Flask, jsonify, send_file, request, abort, Response, render_template, after_this_request
 import os
 from scraper import collect_from_dsebd
 from datetime import datetime
+import io
 
 app = Flask(__name__)
 
@@ -39,12 +40,27 @@ def scrape():
 @app.route("/download")
 def download():
     df = collect_from_dsebd()
-    filename = datetime.now().strftime("%Y%m%d%H%M") + ".csv"
-    df.to_csv(filename, index=False)
-    if not os.path.exists(filename):
-        return jsonify({"success": False, "error": "No CSV file found. Please run /scrape first."})
-    print('*************************' + filename)
-    return send_file(filename, as_attachment=True, download_name=filename)
+    # Create an in-memory buffer
+    buffer = io.StringIO()
+    df.to_csv(buffer, index=False)
+    buffer.seek(0)
+
+    # Dynamically generate filename
+    filename = datetime.now().strftime("stocks_%Y%m%d%H%M.csv")
+
+
+    @after_this_request
+    def cleanup(response):
+        buffer.close()
+        return response
+
+    # Send the buffer as a downloadable file
+    return send_file(
+        io.BytesIO(buffer.getvalue().encode('utf-8')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=filename  # works in Flask 2.0+
+    )
 
 @app.route("/")
 def home():
