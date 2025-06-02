@@ -3,17 +3,9 @@ import os
 from scraper import collect_from_dsebd
 from datetime import datetime
 
-def get_file_name() -> str:
-    # Get current datetime
-    now = datetime.now()
-    
-    # Format as string (yyyymmddhhmm)
-    filename = now.strftime("%Y%m%d%H%M") + ".csv"
-
 app = Flask(__name__)
 
 API_KEY = os.environ.get("API_KEY")
-CSV_DATA = get_file_name()
 
 def require_api_key():
     key = request.args.get("key") or request.headers.get("x-api-key")
@@ -47,10 +39,12 @@ def scrape():
 @app.route("/download")
 def download():
     df = collect_from_dsebd()
-    df.to_csv(CSV_DATA, index=False)
-    if not os.path.exists(CSV_DATA):
+    filename = datetime.now().strftime("%Y%m%d%H%M") + ".csv"
+    df.to_csv(filename, index=False)
+    if not os.path.exists(filename):
         return jsonify({"success": False, "error": "No CSV file found. Please run /scrape first."})
-    return send_file(CSV_DATA, as_attachment=True)
+    print('*************************' + filename)
+    return send_file(filename, as_attachment=True, download_name=filename)
 
 @app.route("/")
 def home():
@@ -58,4 +52,4 @@ def home():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Render sets PORT env variable
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)
